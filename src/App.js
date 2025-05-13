@@ -1,66 +1,29 @@
-import React, {  useState , useEffect} from "react";
-
+import { useEffect, useState } from 'react';
+import {
+    BrowserRouter,
+} from 'react-router-dom';
 import "./styles/App.css";
-import PostList from "./components/PostList";
-import PostForm from "./components/PostForm";
-import MyFilter from "./components/MyFilter";
-import MyModal from "./components/UI/myModal/MyModal";
-import { usePosts } from "./hooks/usePosts";
+import Navbar from "./components/UI/navbar/Navbar";
+import AppRouter from './components/AppRouter';
+import { AuthContext } from './context';
 
-import PostService from "./API/PostService";
-import MyLoader from "./components/UI/loader/MyLoader";
 
 function App() {
-    const [posts, setPosts] = useState([]);
-    const createPost = (newPost) => {
-        setPosts([...posts, newPost]);
-        setModal(false)
-    };
-
-    const [filter, setFilter] = useState({ sort: "", query: "" });
-    const [modal, setModal] =useState(false)
-    const [isPostLoading, setIsPostLoading] = useState(false)
-
-    const removePost = (post) => {
-        setPosts(posts.filter((p) => p.id !== post.id));
-    };
-
-    const sortAndSearchPosts = usePosts(filter.sort, filter.query, posts)
-
-    async function fetchPosts(){
-      setIsPostLoading(true)
-      setTimeout(async ()=>{
-        
-      const posts = await PostService.getAll()
-      setPosts(posts)
-      setIsPostLoading(false)
-      }, 1000)
-      
-    }
+   
+    const [isAuth, setIsAuth] = useState(false)
     useEffect(()=>{
-      fetchPosts()
-    }, [])
-
+        if (localStorage.getItem('auth')){
+            setIsAuth(true)
+        }
+    })
     return (
         <div className="App">
-            <MyModal visible={modal} setVisible={setModal}>
-                <PostForm create={createPost} />
-            </MyModal>
-            <hr style={{ margin: "15px 0" }}></hr>
-            <MyFilter filter={filter} setFilter={setFilter} />
-            
-            {isPostLoading ?
-            <div style={{display:'flex', justifyContent:'center' , margiTop:50}}><MyLoader/></div>
-            
-            :
-            <PostList
-                remove={removePost}
-                posts={sortAndSearchPosts}
-                title={"List posts"}
-            />
-            }
-
-            
+            <AuthContext.Provider value={{ isAuth, setIsAuth }}>
+                <BrowserRouter>
+                    <Navbar/>               
+                    <AppRouter/>
+                </BrowserRouter>
+            </AuthContext.Provider>        
         </div>
     );
 }
